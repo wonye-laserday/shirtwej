@@ -3,18 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>AR Wings — Codici & GLB</title>
+  <title>Camera</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: #000; color: #fff; min-height: 100dvh; display: flex; flex-direction: column; }
+    html, body { width: 100%; height: 100dvh; overflow: hidden; background: #000; }
 
     #stage {
       position: relative;
       width: 100%;
-      height: 58dvh;
-      min-height: 300px;
+      height: 100%;
       overflow: hidden;
-      background: #111;
     }
 
     video, canvas {
@@ -24,189 +22,95 @@
       height: 100%;
       object-fit: cover;
     }
-    #threeCanvas { pointer-events: none; z-index: 2; }
-    #qrCanvas { display: none; }
+    #threeCanvas { z-index: 2; pointer-events: none; }
+    #workCanvas { display: none; }
     video.mirror, canvas.mirror { transform: scaleX(-1); }
 
-    .topbar {
+    .top-bar {
       position: absolute;
-      top: 10px; left: 10px; right: 10px;
+      top: 18px;
+      right: 18px;
       z-index: 10;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
     }
 
-    .badge {
-      background: rgba(0, 0, 0, 0.72);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 6px 11px;
+    .cam-switch {
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #fff;
+      padding: 8px 14px;
       border-radius: 999px;
       font-size: 12px;
       font-weight: 600;
-    }
-
-    .btn {
-      background: rgba(25, 32, 44, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      color: #fff;
-      padding: 7px 11px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 600;
       cursor: pointer;
     }
-    .btn.primary { background: #0284c7; border-color: #38bdf8; }
 
-    .panel {
-      flex: 1;
-      background: #0b0f17;
-      border-top: 1px solid rgba(255,255,255,0.12);
-      padding: 12px;
+    .bottom-bar {
+      position: absolute;
+      bottom: 28px;
+      left: 0;
+      right: 0;
+      z-index: 10;
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-      overflow-y: auto;
-    }
-
-    .row {
-      display: flex;
-      gap: 8px;
+      justify-content: center;
       align-items: center;
-      flex-wrap: wrap;
+      gap: 28px;
     }
 
-    input[type="text"], select {
-      background: #141c2b;
-      border: 1px solid #2b3a55;
-      color: #fff;
-      padding: 8px 10px;
-      border-radius: 10px;
-      font-size: 13px;
-      flex: 1;
-      min-width: 140px;
-    }
-
-    #shutterBtn {
-      width: 52px; height: 52px;
+    #photoBtn {
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
       border: 4px solid #fff;
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.22);
       cursor: pointer;
-      flex-shrink: 0;
     }
+    #photoBtn:active { transform: scale(0.92); background: #fff; }
 
-    .sliders {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px 12px;
-    }
-    .slider-group label {
+    #videoBtn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.7);
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(6px);
       display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: #cbd5e1;
-      margin-bottom: 2px;
-    }
-    input[type="range"] { width: 100%; accent-color: #38bdf8; }
-
-    .slots-box {
-      background: #111827;
-      border: 1px solid #1f2937;
-      border-radius: 12px;
-      padding: 10px;
-    }
-    .slots-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: #93c5fd;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-    }
-    .slot-item {
-      display: grid;
-      grid-template-columns: 74px 1fr auto auto;
-      gap: 6px;
       align-items: center;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      font-size: 12px;
-    }
-    .slot-item:last-child { border-bottom: none; }
-    .slot-tag { font-weight: 700; color: #e2e8f0; }
-    .slot-code-input {
-      background: #0b101b !important;
-      padding: 6px 8px !important;
-      font-size: 12px !important;
-      min-width: 0 !important;
-    }
-    .slot-file-label {
-      background: #1e293b;
-      border: 1px solid #334155;
-      padding: 6px 8px;
-      border-radius: 8px;
+      justify-content: center;
       cursor: pointer;
-      max-width: 120px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
-    input[type="file"] { display: none; }
+    #videoBtn .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+    #videoBtn.recording {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.25);
+    }
+    #videoBtn.recording .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      background: #ef4444;
+    }
   </style>
 </head>
 <body>
-
   <div id="stage">
     <video id="video" autoplay playsinline muted></video>
     <canvas id="threeCanvas"></canvas>
-    <canvas id="qrCanvas"></canvas>
+    <canvas id="workCanvas"></canvas>
 
-    <div class="topbar">
-      <div class="badge" id="statusBadge">In attesa codice valido...</div>
-      <div style="display:flex; gap:6px;">
-        <button class="btn" id="scanQrBtn">QR Cam: ON</button>
-        <button class="btn" id="flipCamBtn">Gira Cam</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="row">
-      <select id="slotSelect" title="Seleziona slot attivo"></select>
-      <input type="text" id="activeCodeInput" placeholder="Codice Aruba / maglietta attivo..." />
-      <button class="btn primary" id="verifyCodeBtn">Attiva</button>
-      <button id="shutterBtn" title="Scatta foto"></button>
+    <div class="top-bar">
+      <button class="cam-switch" id="flipBtn">Gira</button>
     </div>
 
-    <div class="sliders">
-      <div class="slider-group">
-        <label><span>Scala</span><span id="valScale">1.00x</span></label>
-        <input type="range" id="scaleSlider" min="0.2" max="3.0" step="0.05" value="1.0" />
-      </div>
-      <div class="slider-group">
-        <label><span>Altezza (Y)</span><span id="valY">0.05</span></label>
-        <input type="range" id="ySlider" min="-0.8" max="0.8" step="0.02" value="0.05" />
-      </div>
-      <div class="slider-group">
-        <label><span>Rotazione</span><span id="valRot">0°</span></label>
-        <input type="range" id="rotSlider" min="-180" max="180" step="2" value="0" />
-      </div>
-      <div class="slider-group">
-        <label><span>Profondità (Z)</span><span id="valZ">0.00</span></label>
-        <input type="range" id="zSlider" min="-0.6" max="0.6" step="0.02" value="0.0" />
-      </div>
-    </div>
-
-    <div class="slots-box">
-      <div class="slots-title">
-        <span>Registro Codici & File .GLB (1 Principale + 10 Riservati)</span>
-        <span id="matchedInfo">Nessun match</span>
-      </div>
-      <div id="slotsContainer"></div>
+    <div class="bottom-bar">
+      <button id="videoBtn" aria-label="Video"><span class="dot"></span></button>
+      <button id="photoBtn" aria-label="Foto"></button>
+      <div style="width:48px;"></div>
     </div>
   </div>
 
@@ -219,144 +123,36 @@
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-aruco2@1.0.1/src/cv.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-aruco2@1.0.1/src/aruco.js" crossorigin="anonymous"></script>
 
   <script type="module">
     import * as THREE from 'three';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-    const STORAGE_KEY = 'ar_wings_aruba_slots_v1';
+    const ARUCO_GLB_MAP = {
+      0: 'wings-0.glb',
+      1: 'wings-1.glb',
+      2: 'wings-2.glb',
+      3: 'wings-3.glb',
+      4: 'wings-4.glb',
+      5: 'wings-5.glb',
+      6: 'wings-6.glb',
+      7: 'wings-7.glb',
+      8: 'wings-8.glb',
+      9: 'wings-9.glb'
+    };
 
-    // 1 slot principale (indice 0) + 10 futuri slot (indici 1..10)
-    function createInitialSlots() {
-      const list = [
-        { id: 'MAIN', label: 'Principale', code: 'ARUBA-001', glbName: 'Nessun .glb caricato', glbUrl: '' }
-      ];
-      for (let i = 1; i <= 10; i++) {
-        const num = String(i).padStart(2, '0');
-        list.push({
-          id: `SLOT_${num}`,
-          label: `Slot ${num}`,
-          code: '',
-          glbName: `Futuro .glb ${num}`,
-          glbUrl: ''
-        });
-      }
-      return list;
-    }
-
-    function loadSlots() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return createInitialSlots();
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed) || parsed.length !== 11) return createInitialSlots();
-        return parsed.map(s => ({ ...s, glbUrl: '' })); // gli ObjectURL non sopravvivono al reload
-      } catch {
-        return createInitialSlots();
-      }
-    }
-
-    let slots = loadSlots();
-    // Mappa in memoria per i File/Blob caricati nella sessione corrente
-    const sessionGlbFiles = new Map(); // slotId -> File
-
-    function saveSlotsMeta() {
-      const metaOnly = slots.map(({ id, label, code, glbName }) => ({ id, label, code, glbName }));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(metaOnly));
-    }
-
-    // --- UI SLOT ---
-    const slotSelect = document.getElementById('slotSelect');
-    const slotsContainer = document.getElementById('slotsContainer');
-    const activeCodeInput = document.getElementById('activeCodeInput');
-    const matchedInfo = document.getElementById('matchedInfo');
-    const statusBadge = document.getElementById('statusBadge');
-
-    let currentSlotIndex = 0;
-    let codeAuthorized = false;
-    let currentLoadedModelForSlot = null;
-
-    function renderSlotsUI() {
-      slotSelect.innerHTML = '';
-      slotsContainer.innerHTML = '';
-
-      slots.forEach((slot, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = `${slot.label}${slot.code ? ` [${slot.code}]` : ' [vuoto]'}`;
-        if (idx === currentSlotIndex) opt.selected = true;
-        slotSelect.appendChild(opt);
-
-        const row = document.createElement('div');
-        row.className = 'slot-item';
-
-        const tag = document.createElement('div');
-        tag.className = 'slot-tag';
-        tag.textContent = slot.label;
-
-        const codeInp = document.createElement('input');
-        codeInp.type = 'text';
-        codeInp.className = 'slot-code-input';
-        codeInp.placeholder = `Codice ${slot.label}`;
-        codeInp.value = slot.code;
-        codeInp.addEventListener('input', (e) => {
-          slots[idx].code = e.target.value.trim();
-          saveSlotsMeta();
-          renderSelectOnly();
-        });
-
-        const fileInp = document.createElement('input');
-        fileInp.type = 'file';
-        fileInp.accept = '.glb,.gltf';
-        fileInp.id = `file_${slot.id}`;
-        fileInp.addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          sessionGlbFiles.set(slot.id, file);
-          slots[idx].glbName = file.name;
-          saveSlotsMeta();
-          renderSlotsUI();
-          if (idx === currentSlotIndex && codeAuthorized) {
-            loadSlotGlbIntoScene(idx);
-          }
-        });
-
-        const fileLbl = document.createElement('label');
-        fileLbl.className = 'slot-file-label';
-        fileLbl.htmlFor = fileInp.id;
-        fileLbl.title = slots[idx].glbName;
-        fileLbl.textContent = slots[idx].glbName;
-
-        const useBtn = document.createElement('button');
-        useBtn.className = 'btn';
-        useBtn.textContent = 'Usa';
-        useBtn.addEventListener('click', () => {
-          currentSlotIndex = idx;
-          activeCodeInput.value = slots[idx].code;
-          slotSelect.value = idx;
-          verifyAndActivateCode(slots[idx].code);
-        });
-
-        row.append(tag, codeInp, fileInp, fileLbl, useBtn);
-        slotsContainer.appendChild(row);
-      });
-
-      activeCodeInput.value = slots[currentSlotIndex].code || '';
-    }
-
-    function renderSelectOnly() {
-      Array.from(slotSelect.options).forEach((opt, idx) => {
-        const s = slots[idx];
-        opt.textContent = `${s.label}${s.code ? ` [${s.code}]` : ' [vuoto]'}`;
-      });
-    }
-
-    // --- THREE.JS ---
     const video = document.getElementById('video');
     const threeCanvas = document.getElementById('threeCanvas');
-    const qrCanvas = document.getElementById('qrCanvas');
-    const qrCtx = qrCanvas.getContext('2d', { willReadFrequently: true });
+    const workCanvas = document.getElementById('workCanvas');
+    const workCtx = workCanvas.getContext('2d', { willReadFrequently: true });
+
+    let facingMode = 'environment';
+    let currentStream = null;
+    let activeMarkerId = null;
+    let bodyDetected = false;
+    const loadedCache = new Map();
 
     const renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, alpha: true, antialias: true, preserveDrawingBuffer: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -374,170 +170,84 @@
     anchorGroup.visible = false;
     scene.add(anchorGroup);
 
-    const wingsPivot = new THREE.Group();
-    anchorGroup.add(wingsPivot);
+    const modelHolder = new THREE.Group();
+    anchorGroup.add(modelHolder);
 
     const gltfLoader = new GLTFLoader();
 
-    function loadSlotGlbIntoScene(idx) {
-      const slot = slots[idx];
-      const file = sessionGlbFiles.get(slot.id);
-      wingsPivot.clear();
-      currentLoadedModelForSlot = null;
+    function attachModelForMarker(markerId) {
+      if (!(markerId in ARUCO_GLB_MAP)) return;
 
-      if (!file) {
-        statusBadge.textContent = `Codice OK (${slot.code}) — seleziona il file .GLB per ${slot.label}`;
+      if (loadedCache.has(markerId)) {
+        modelHolder.clear();
+        modelHolder.add(loadedCache.get(markerId));
         return;
       }
 
-      const url = URL.createObjectURL(file);
-      gltfLoader.load(url, (gltf) => {
-        wingsPivot.clear();
-        const model = gltf.scene;
-        const box = new THREE.Box3().setFromObject(model);
-        const size = new THREE.Vector3();
-        const center = new THREE.Vector3();
-        box.getSize(size);
-        box.getCenter(center);
+      const filePath = ARUCO_GLB_MAP[markerId];
+      gltfLoader.load(
+        filePath,
+        (gltf) => {
+          const model = gltf.scene;
+          const box = new THREE.Box3().setFromObject(model);
+          const size = new THREE.Vector3();
+          const center = new THREE.Vector3();
+          box.getSize(size);
+          box.getCenter(center);
 
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        const normScale = 1.4 / maxDim;
+          const maxDim = Math.max(size.x, size.y, size.z) || 1;
+          const normScale = 1.4 / maxDim;
 
-        model.position.sub(center);
-        const wrapper = new THREE.Group();
-        wrapper.add(model);
-        wrapper.scale.setScalar(normScale);
+          model.position.sub(center);
+          const wrapper = new THREE.Group();
+          wrapper.add(model);
+          wrapper.scale.setScalar(normScale);
 
-        wingsPivot.add(wrapper);
-        currentLoadedModelForSlot = slot.id;
-        statusBadge.textContent = `Attivo: ${slot.code} → ${slot.glbName}`;
-        URL.revokeObjectURL(url);
-      }, undefined, () => {
-        statusBadge.textContent = `Errore caricamento .GLB su ${slot.label}`;
-        URL.revokeObjectURL(url);
-      });
-    }
-
-    function verifyAndActivateCode(candidateCode) {
-      const clean = (candidateCode || '').trim();
-      if (!clean) {
-        codeAuthorized = false;
-        anchorGroup.visible = false;
-        matchedInfo.textContent = 'Codice vuoto';
-        statusBadge.textContent = 'Inserisci o inquadra un codice valido';
-        return;
-      }
-
-      const foundIdx = slots.findIndex(s => s.code && s.code.toLowerCase() === clean.toLowerCase());
-      if (foundIdx === -1) {
-        codeAuthorized = false;
-        anchorGroup.visible = false;
-        matchedInfo.textContent = 'Nessun match';
-        statusBadge.textContent = `Codice "${clean}" non assegnato a nessuno slot`;
-        return;
-      }
-
-      currentSlotIndex = foundIdx;
-      slotSelect.value = foundIdx;
-      codeAuthorized = true;
-      matchedInfo.textContent = `Match: ${slots[foundIdx].label}`;
-
-      if (currentLoadedModelForSlot !== slots[foundIdx].id) {
-        loadSlotGlbIntoScene(foundIdx);
-      } else if (sessionGlbFiles.has(slots[foundIdx].id)) {
-        statusBadge.textContent = `Attivo: ${slots[foundIdx].code} → ${slots[foundIdx].glbName}`;
-      } else {
-        statusBadge.textContent = `Codice OK (${slots[foundIdx].code}) — carica file .GLB su ${slots[foundIdx].label}`;
-      }
-    }
-
-    document.getElementById('verifyCodeBtn').addEventListener('click', () => {
-      verifyAndActivateCode(activeCodeInput.value);
-    });
-    slotSelect.addEventListener('change', (e) => {
-      currentSlotIndex = parseInt(e.target.value, 10);
-      activeCodeInput.value = slots[currentSlotIndex].code || '';
-      verifyAndActivateCode(activeCodeInput.value);
-    });
-
-    // --- SLIDER ---
-    const scaleSlider = document.getElementById('scaleSlider');
-    const ySlider = document.getElementById('ySlider');
-    const rotSlider = document.getElementById('rotSlider');
-    const zSlider = document.getElementById('zSlider');
-
-    function updateManualTransform() {
-      const s = parseFloat(scaleSlider.value);
-      const y = parseFloat(ySlider.value);
-      const r = THREE.MathUtils.degToRad(parseFloat(rotSlider.value));
-      const z = parseFloat(zSlider.value);
-
-      document.getElementById('valScale').textContent = s.toFixed(2) + 'x';
-      document.getElementById('valY').textContent = y.toFixed(2);
-      document.getElementById('valRot').textContent = rotSlider.value + '°';
-      document.getElementById('valZ').textContent = z.toFixed(2);
-
-      wingsPivot.scale.setScalar(s);
-      wingsPivot.position.set(0, y, z);
-      wingsPivot.rotation.set(0, r, 0);
-    }
-    [scaleSlider, ySlider, rotSlider, zSlider].forEach(el => el.addEventListener('input', updateManualTransform));
-    updateManualTransform();
-
-    // --- FOTOCAMERA + QR SCANNER ---
-    let facingMode = 'environment';
-    let currentStream = null;
-    let scanQrEnabled = true;
-
-    document.getElementById('scanQrBtn').addEventListener('click', (e) => {
-      scanQrEnabled = !scanQrEnabled;
-      e.target.textContent = scanQrEnabled ? 'QR Cam: ON' : 'QR Cam: OFF';
-    });
-
-    async function startCamera() {
-      if (currentStream) currentStream.getTracks().forEach(t => t.stop());
-      try {
-        currentStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: false
-        });
-        video.srcObject = currentStream;
-        await video.play();
-        const mirror = facingMode === 'user';
-        video.classList.toggle('mirror', mirror);
-        threeCanvas.classList.toggle('mirror', mirror);
-      } catch {
-        statusBadge.textContent = 'Fotocamera non disponibile (serve HTTPS o localhost)';
-      }
-    }
-
-    document.getElementById('flipCamBtn').addEventListener('click', () => {
-      facingMode = facingMode === 'environment' ? 'user' : 'environment';
-      startCamera();
-    });
-
-    function checkQrOnFrame() {
-      if (!scanQrEnabled || !window.jsQR || video.readyState < 2) return;
-      qrCanvas.width = 320;
-      qrCanvas.height = 240;
-      qrCtx.drawImage(video, 0, 0, qrCanvas.width, qrCanvas.height);
-      const img = qrCtx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
-      const code = window.jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-      if (code && code.data) {
-        const scanned = code.data.trim();
-        if (scanned && scanned !== activeCodeInput.value.trim()) {
-          activeCodeInput.value = scanned;
-          verifyAndActivateCode(scanned);
+          loadedCache.set(markerId, wrapper);
+          if (activeMarkerId === markerId) {
+            modelHolder.clear();
+            modelHolder.add(wrapper);
+          }
+        },
+        undefined,
+        () => {
+          if (activeMarkerId === markerId) {
+            modelHolder.clear();
+          }
         }
+      );
+    }
+
+    const detector = window.AR ? new window.AR.Detector({ dictionaryName: 'ARUCO_4X4_50' }) : null;
+    let lastMarkerSeenAt = 0;
+
+    function detectArucoCode() {
+      if (!detector || video.readyState < 2) return;
+      workCanvas.width = 960;
+      workCanvas.height = 720;
+      workCtx.drawImage(video, 0, 0, workCanvas.width, workCanvas.height);
+      const imgData = workCtx.getImageData(0, 0, workCanvas.width, workCanvas.height);
+      const markers = detector.detect(imgData);
+
+      if (markers && markers.length > 0) {
+        const foundId = markers[0].id;
+        if (foundId in ARUCO_GLB_MAP) {
+          lastMarkerSeenAt = performance.now();
+          if (activeMarkerId !== foundId) {
+            activeMarkerId = foundId;
+            attachModelForMarker(foundId);
+          }
+        }
+      } else if (activeMarkerId !== null && performance.now() - lastMarkerSeenAt > 1800) {
+        activeMarkerId = null;
+        modelHolder.clear();
       }
     }
 
-    // --- POSE TRACKING ---
-    const targetPos = new THREE.Vector3(0, 0.1, 0);
+    const targetPos = new THREE.Vector3(0, 0.08, 0);
     let targetScale = 1.0;
     let targetYaw = 0;
     let targetRoll = 0;
-    let bodyDetected = false;
 
     const pose = new window.Pose({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
@@ -568,8 +278,27 @@
         bodyDetected = false;
       }
 
-      const hasGlb = codeAuthorized && sessionGlbFiles.has(slots[currentSlotIndex].id);
-      anchorGroup.visible = Boolean(hasGlb && bodyDetected);
+      anchorGroup.visible = Boolean(activeMarkerId !== null && bodyDetected && modelHolder.children.length > 0);
+    });
+
+    async function startCamera() {
+      if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+      try {
+        currentStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        video.srcObject = currentStream;
+        await video.play();
+        const mirror = facingMode === 'user';
+        video.classList.toggle('mirror', mirror);
+        threeCanvas.classList.toggle('mirror', mirror);
+      } catch {}
+    }
+
+    document.getElementById('flipBtn').addEventListener('click', () => {
+      facingMode = facingMode === 'environment' ? 'user' : 'environment';
+      startCamera();
     });
 
     function resize() {
@@ -588,7 +317,7 @@
 
       if (video.readyState >= 2 && video.currentTime !== lastVideoTime) {
         lastVideoTime = video.currentTime;
-        checkQrOnFrame();
+        detectArucoCode();
         await pose.send({ image: video });
       }
 
@@ -603,39 +332,85 @@
       renderer.render(scene, camera);
     }
 
-    // --- SCATTO FOTO ---
-    document.getElementById('shutterBtn').addEventListener('click', () => {
-      const snap = document.createElement('canvas');
-      snap.width = threeCanvas.width;
-      snap.height = threeCanvas.height;
-      const ctx = snap.getContext('2d');
+    function drawCompositeToCanvas(targetCanvas) {
+      targetCanvas.width = threeCanvas.width;
+      targetCanvas.height = threeCanvas.height;
+      const ctx = targetCanvas.getContext('2d');
 
       if (facingMode === 'user') {
-        ctx.translate(snap.width, 0);
+        ctx.translate(targetCanvas.width, 0);
         ctx.scale(-1, 1);
       }
 
       const vRatio = video.videoWidth / video.videoHeight;
-      const cRatio = snap.width / snap.height;
-      let drawW = snap.width, drawH = snap.height, offsetX = 0, offsetY = 0;
+      const cRatio = targetCanvas.width / targetCanvas.height;
+      let drawW = targetCanvas.width, drawH = targetCanvas.height, offsetX = 0, offsetY = 0;
       if (vRatio > cRatio) {
-        drawW = snap.height * vRatio;
-        offsetX = (snap.width - drawW) / 2;
+        drawW = targetCanvas.height * vRatio;
+        offsetX = (targetCanvas.width - drawW) / 2;
       } else {
-        drawH = snap.width / vRatio;
-        offsetY = (snap.height - drawH) / 2;
+        drawH = targetCanvas.width / vRatio;
+        offsetY = (targetCanvas.height - drawH) / 2;
       }
       ctx.drawImage(video, offsetX, offsetY, drawW, drawH);
-      ctx.drawImage(threeCanvas, 0, 0, snap.width, snap.height);
+      ctx.drawImage(threeCanvas, 0, 0, targetCanvas.width, targetCanvas.height);
+    }
 
-      const link = document.createElement('a');
-      link.download = `ar-wings-${Date.now()}.png`;
-      link.href = snap.toDataURL('image/png');
-      link.click();
+    document.getElementById('photoBtn').addEventListener('click', () => {
+      const snap = document.createElement('canvas');
+      drawCompositeToCanvas(snap);
+      const a = document.createElement('a');
+      a.download = `foto-${Date.now()}.png`;
+      a.href = snap.toDataURL('image/png');
+      a.click();
     });
 
-    renderSlotsUI();
-    verifyAndActivateCode(activeCodeInput.value);
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recLoopId = null;
+    const videoBtn = document.getElementById('videoBtn');
+
+    videoBtn.addEventListener('click', () => {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        cancelAnimationFrame(recLoopId);
+        videoBtn.classList.remove('recording');
+        return;
+      }
+
+      const recCanvas = document.createElement('canvas');
+      drawCompositeToCanvas(recCanvas);
+
+      function pumpFrame() {
+        drawCompositeToCanvas(recCanvas);
+        recLoopId = requestAnimationFrame(pumpFrame);
+      }
+      pumpFrame();
+
+      const stream = recCanvas.captureStream(30);
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : 'video/webm';
+
+      recordedChunks = [];
+      mediaRecorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+      };
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.download = `video-${Date.now()}.webm`;
+        a.href = url;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      };
+
+      mediaRecorder.start();
+      videoBtn.classList.add('recording');
+    });
+
     startCamera();
     animate();
   </script>
